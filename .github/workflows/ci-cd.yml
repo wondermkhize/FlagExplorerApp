@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Frontend Setup and Test
+      # Frontend Setup
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -37,7 +37,7 @@ jobs:
         working-directory: ./client   # Frontend in 'client' folder
         run: npm run build
 
-      # Backend Setup and Test
+      # Backend Setup and Build
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -51,6 +51,7 @@ jobs:
         working-directory: ./API   # Backend in 'API' folder
         run: dotnet build --no-restore
 
+      # Run backend tests (after build)
       - name: Run backend tests
         working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
         run: dotnet test --no-build --verbosity normal
