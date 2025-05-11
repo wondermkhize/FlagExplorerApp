@@ -31,10 +31,7 @@ public class CountryService : ICountryService
     {
         var response = await _apiClient.GetCountryByNameAsync(name);
 
-        var country = DeserializeCountries(response).FirstOrDefault();
-
-        if (country == null)
-            throw new CountryNotFoundException($"Country '{name}' not found.");
+        var country = DeserializeCountries(response).FirstOrDefault() ?? throw new CountryNotFoundException($"Country '{name}' not found.");
 
         return new CountryDetails
         {
