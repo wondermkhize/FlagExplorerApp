@@ -47,6 +47,11 @@ jobs:
         working-directory: ./API   # Backend in 'API' folder
         run: dotnet restore
 
+      # Restore dependencies for backend tests
+      - name: Restore backend test dependencies
+        working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
+        run: dotnet restore
+
       - name: Build backend
         working-directory: ./API   # Backend in 'API' folder
         run: dotnet build --no-restore
