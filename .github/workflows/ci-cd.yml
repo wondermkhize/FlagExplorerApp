@@ -51,6 +51,11 @@ jobs:
         working-directory: ./API   # Backend in 'API' folder
         run: dotnet build --no-restore
 
+      # Build backend tests before running them
+      - name: Build backend tests
+        working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
+        run: dotnet build --no-restore
+
       # Run backend tests (after build)
       - name: Run backend tests
         working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
