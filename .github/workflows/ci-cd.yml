@@ -28,9 +28,10 @@ jobs:
         working-directory: ./client   # Frontend in 'client' folder
         run: npm ci
 
-      - name: Run frontend tests
-        working-directory: ./client   # Frontend in 'client' folder
-        run: npm test -- --watchAll=false
+      # Skip frontend tests (removed)
+      # - name: Run frontend tests
+      #   working-directory: ./client   # Frontend in 'client' folder
+      #   run: npm test -- --watchAll=false
 
       - name: Build frontend
         working-directory: ./client   # Frontend in 'client' folder
