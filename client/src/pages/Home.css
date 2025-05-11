@@ -1,0 +1,34 @@
+.country-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 1.5rem;
+	padding: 1.5rem;
+}
+
+.country-card {
+	background: white;
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.country-card:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.country-flag {
+	width: 100%;
+	height: 140px;
+	object-fit: cover;
+}
+
+.country-name {
+	text-align: center;
+	padding: 0.75rem;
+	font-weight: 600;
+	color: #1f2937;
+	font-size: 0.95rem;
+}

@@ -1,0 +1,70 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Frontend Setup and Test
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install frontend dependencies
+        working-directory: ./client   # Frontend in 'client' folder
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: ./client   # Frontend in 'client' folder
+        run: npm test -- --watchAll=false
+
+      - name: Build frontend
+        working-directory: ./client   # Frontend in 'client' folder
+        run: npm run build
+
+      # Backend Setup and Test
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' # Update to match your version
+
+      - name: Restore backend dependencies
+        working-directory: ./API   # Backend in 'API' folder
+        run: dotnet restore
+
+      - name: Build backend
+        working-directory: ./API   # Backend in 'API' folder
+        run: dotnet build --no-restore
+
+      - name: Run backend tests
+        working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
+        run: dotnet test --no-build --verbosity normal
+
+      # Package Output
+      - name: Package frontend
+        run: zip -r frontend-build.zip ./client/dist
+
+      - name: Package backend
+        run: zip -r backend-build.zip ./API/bin/Debug/net8.0
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            frontend-build.zip
+            backend-build.zip
