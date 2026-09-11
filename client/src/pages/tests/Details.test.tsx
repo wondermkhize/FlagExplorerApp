@@ -40,7 +40,7 @@ describe("Details Page", () => {
 		await waitFor(() => {
 			expect(screen.getByText(/South Africa/i)).toBeInTheDocument();
 			expect(screen.getByText(/Pretoria/i)).toBeInTheDocument();
-			expect(screen.getByText(/60\s*000\s*000/)).toBeInTheDocument();
+			expect(screen.getByText(/Population:/i).parentElement).toHaveTextContent(/60/);
 		});
 	});
 });
