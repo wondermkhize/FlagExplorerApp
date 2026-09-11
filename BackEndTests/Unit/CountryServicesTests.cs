@@ -26,14 +26,20 @@ namespace BackEndTests.Unit
             var countryName = "South Africa";
 
             var apiJsonResponse = """
-                [
-                    {
-                        "name": { "common": "South Africa" },
-                        "flags": { "png": "https://flagcdn.com/w320/za.png" },
+                {
+                  "data": {
+                    "objects": [
+                      {
+                        "names": { "common": "South Africa" },
+                        "flag": { "url_png": "https://flagcdn.com/w320/za.png" },
                         "population": 60000000,
-                        "capital": ["Pretoria"]
-                    }
-                ]
+                        "capitals": [
+                          { "name": "Pretoria" }
+                        ]
+                      }
+                    ]
+                  }
+                }
                 """;
 
             var expected = new CountryDetails
@@ -74,16 +80,20 @@ namespace BackEndTests.Unit
         {
             // Arrange
             var apiResponse = """
-                [
-                    {
-                        "name": { "common": "Botswana" },
-                        "flags": { "png": "https://flagcdn.com/w320/bw.png" }
-                    },
-                    {
-                        "name": { "common": "Germany" },
-                        "flags": { "png": "https://flagcdn.com/w320/de.png" }
-                    }
-                ]
+                {
+                  "data": {
+                    "objects": [
+                      {
+                        "names": { "common": "Botswana" },
+                        "flag": { "url_png": "https://flagcdn.com/w320/bw.png" }
+                      },
+                      {
+                        "names": { "common": "Germany" },
+                        "flag": { "url_png": "https://flagcdn.com/w320/de.png" }
+                      }
+                    ]
+                  }
+                }
                 """;
 
             var expected = new List<Country>
@@ -117,6 +127,71 @@ namespace BackEndTests.Unit
 
             // Assert
             result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetAllCountriesAsync_WhenApiReturnsWrappedErrorResponse_ThrowsExternalApiException()
+        {
+            // Arrange
+            var wrappedErrorResponse = """
+                {
+                  "success": false,
+                  "data": null,
+                  "errors": [
+                    {
+                      "message": "This API version has been deprecated. Please visit https://restcountries.com/docs/countries/legacy-api-deprecation to migrate to our new version (v5)."
+                    }
+                  ]
+                }
+                """;
+
+            _mockClient.Setup(x => x.GetAllCountriesAsync())
+                       .ReturnsAsync(wrappedErrorResponse);
+
+            // Act
+            var act = async () => await _service.GetAllCountriesAsync();
+
+            // Assert
+            await act.Should().ThrowAsync<ExternalApiException>()
+                .WithMessage("*deprecated*new version (v5)*");
+        }
+
+        [Fact]
+        public async Task GetAllCountriesAsync_WhenApiReturnsV5ObjectsPayload_ReturnsExpectedCountryList()
+        {
+            // Arrange
+            var apiResponse = """
+                {
+                  "data": {
+                    "objects": [
+                      {
+                        "names": { "common": "Botswana" },
+                        "flag": { "url_png": "https://flagcdn.com/w320/bw.png" },
+                        "population": 2300000,
+                        "capitals": [
+                          { "name": "Gaborone" }
+                        ]
+                      }
+                    ]
+                  }
+                }
+                """;
+
+            _mockClient.Setup(x => x.GetAllCountriesAsync())
+                       .ReturnsAsync(apiResponse);
+
+            // Act
+            var result = await _service.GetAllCountriesAsync();
+
+            // Assert
+            result.Should().BeEquivalentTo(new List<Country>
+            {
+                new Country
+                {
+                    Name = "Botswana",
+                    Flag = "https://flagcdn.com/w320/bw.png"
+                }
+            });
         }
 
     }

@@ -5,11 +5,23 @@ using Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var restCountriesBaseUrl = builder.Configuration["RestCountriesApi:BaseUrl"];
+if (string.IsNullOrWhiteSpace(restCountriesBaseUrl))
+{
+    throw new InvalidOperationException("RestCountriesApi:BaseUrl is not configured.");
+}
+
+var restCountriesApiKey = builder.Configuration["RestCountriesApi:ApiKey"];
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? ["http://localhost:5173"];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowConfiguredOrigins", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -18,7 +30,13 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddHttpClient<IRestCountriesClient, RestCountriesClient>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["RestCountriesApi:BaseUrl"]!);
+    client.BaseAddress = new Uri(restCountriesBaseUrl);
+
+    if (!string.IsNullOrWhiteSpace(restCountriesApiKey))
+    {
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", restCountriesApiKey);
+    }
 });
 
 builder.Services.AddScoped<ICountryService, CountryService>();
@@ -39,7 +57,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowConfiguredOrigins");
 
 app.MapControllers();
 

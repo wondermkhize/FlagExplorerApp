@@ -1,141 +1,146 @@
 # Flag Explorer App
 
-Flag Explorer App, a full stack project built with a .NET 8 Web API backend and a React frontend.
+Flag Explorer App is a full-stack application built with a .NET 8 Web API backend and a React + Vite frontend. It retrieves country data from the Rest Countries API and displays a home grid plus a details view for each country.
 
-You can spin up both the backend and frontend using Visual Studio Code or your favorite terminal. Here is a quick guide to getting everything up and running on your local machine.
+---
+
+## Tech Stack
+
+- Backend: ASP.NET Core Web API (.NET 8)
+- Frontend: React + Vite + TypeScript
+- Data fetching: TanStack Query + Axios
+- Testing: xUnit + Vitest
+- CI/CD: GitHub Actions
 
 ---
 
 ## Prerequisites
 
-Before getting started make sure you have installed:
+Before starting, make sure you have installed:
 
-* [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-* [Node.js](https://nodejs.org/) (v16 or newer recommended)
-* [npm](https://www.npmjs.com/) (included with Node.js)
-* [VS Code](https://code.visualstudio.com/) or another text editor
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js](https://nodejs.org/) (18 or newer recommended)
+- npm
+- Git
 
 ---
 
-## Getting the Code
+## Local setup
 
-Clone the repository to your machine and move into the project directory:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/wondermkhize/FlagExplorerApp.git
 cd FlagExplorerApp
-
 ```
 
----
+### 2. Restore .NET dependencies
 
-## Setting Up the Backend
-
-1. Open your terminal and navigate to the API folder:
-```bash
-cd API
-
-```
-
-
-2. Restore the required .NET packages:
 ```bash
 dotnet restore
-
 ```
 
+### 3. Run the backend
 
-3. Start the backend server:
 ```bash
+cd API
 dotnet watch run
-
 ```
 
+The API will run at:
 
+- http://localhost:5000
+- https://localhost:5001
 
-Once running the backend listens at:
+Swagger is available at:
 
-* http://localhost:5000
-* https://localhost:5001
+- http://localhost:5000/swagger
+- https://localhost:5001/swagger
 
-You can test out endpoints using the Swagger UI at:
+### 4. Install frontend dependencies
 
-* http://localhost:5000/swagger/index.html
-* https://localhost:5001/swagger/index.html
-
----
-
-## Running Backend Tests
-
-To execute the test suite:
-
-1. Navigate to the `BackEndTests` folder or stay in the project root:
-```bash
-dotnet test
-
-```
-
-
-
-This compiles the code and runs all unit tests displaying the results directly in your terminal.
-
----
-
-## Setting Up the Frontend
-
-1. Open a new terminal tab and head over to the client folder:
 ```bash
 cd client
-
-```
-
-
-2. Install the Node packages:
-```bash
 npm install
-
 ```
 
+### 5. Configure the frontend API URL
 
-3. Build the project (optional):
+Copy the example environment file and update the value if needed:
+
 ```bash
-npm run build
-
+copy .env.example .env
 ```
 
+Example `.env`:
 
-4. Launch the local development server:
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+### 6. Run the frontend
+
 ```bash
 npm run dev
-
 ```
 
+The frontend will be available at:
 
-
-The React app should now be running at:
-
-```
-http://localhost:5173
-
-```
+- http://localhost:5173
 
 ---
 
-## Running Frontend Tests
+## Run tests
 
-To run the frontend test suite execute:
+### Backend
+
+From the project root:
 
 ```bash
-npm run test
-
+dotnet test
 ```
 
-This triggers the configured test runner such as Vitest or Jest.
+### Frontend
+
+From the client folder:
+
+```bash
+npm run test -- --run
+```
+
+### Linting
+
+```bash
+npm run lint
+```
 
 ---
 
-## Quick Summary
+## CI/CD
 
-* Swagger API documentation: `https://localhost:5001/swagger/index.html`
-* Web application interface: `http://localhost:5173`
-* Test suites: `dotnet test` and `npm run test`
+The GitHub Actions workflow in [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml) runs:
+
+- frontend lint
+- frontend tests
+- frontend build
+- backend restore/build
+- backend tests
+- artifact packaging
+
+---
+
+## Project structure
+
+- `API/` – ASP.NET Core API project
+- `Infrastructure/` – service and infrastructure layer
+- `BackEndTests/` – backend tests
+- `client/` – React frontend
+
+---
+
+## Recommended next improvements
+
+- Add more detailed error handling and telemetry
+- Improve frontend accessibility and polish
+- Add environment-specific deployment configuration
+- Expand test coverage for edge cases

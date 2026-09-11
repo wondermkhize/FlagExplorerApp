@@ -15,6 +15,7 @@ const Banner = () => {
 					type="button"
 					onClick={() => navigate(-1)}
 					className="text-white hover:text-gray-200 transition"
+					aria-label="Go back to country list"
 				>
 					<ArrowLeft className="w-5 h-5" />
 				</button>

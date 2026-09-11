@@ -1,21 +1,24 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { describe, expect, it, vi } from "vitest";
 import Details from "../Details";
 
-jest.mock("../../services/apiClient", () => ({
-	get: jest.fn((url: string) =>
-		url.includes("/countries/South Africa")
-			? Promise.resolve({
-					data: {
-						name: "South Africa",
-						flag: "za.svg",
-						capital: "Pretoria",
-						population: 60000000,
-					},
-				})
-			: Promise.reject(),
-	),
+vi.mock("../../services/apiClient", () => ({
+	default: {
+		get: vi.fn((url: string) =>
+			url.includes("/countries/South Africa")
+				? Promise.resolve({
+						data: {
+							name: "South Africa",
+							flag: "za.svg",
+							capital: "Pretoria",
+							population: 60000000,
+						},
+					})
+				: Promise.reject(),
+		),
+	},
 }));
 
 const renderWithRouter = () => {
@@ -37,7 +40,7 @@ describe("Details Page", () => {
 		await waitFor(() => {
 			expect(screen.getByText(/South Africa/i)).toBeInTheDocument();
 			expect(screen.getByText(/Pretoria/i)).toBeInTheDocument();
-			expect(screen.getByText(/60,000,000/)).toBeInTheDocument();
+			expect(screen.getByText(/60\s*000\s*000/)).toBeInTheDocument();
 		});
 	});
 });

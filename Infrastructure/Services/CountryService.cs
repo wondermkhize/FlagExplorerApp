@@ -1,7 +1,9 @@
-using Newtonsoft.Json;
 using Infrastructure.Entities;
-using Infrastructure.Interfaces;
 using Infrastructure.Exceptions;
+using Infrastructure.Interfaces;
+using Infrastructure.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Infrastructure.Services;
 
@@ -22,8 +24,8 @@ public class CountryService : ICountryService
 
         return countries.Select(c => new Country
         {
-            Name = c.name.common,
-            Flag = c.flags.png
+            Name = c.Names?.Common,
+            Flag = c.Flag?.UrlPng
         });
     }
 
@@ -35,15 +37,48 @@ public class CountryService : ICountryService
 
         return new CountryDetails
         {
-            Name = country?.name.common,
-            Flag = country?.flags.png,
-            Population = country?.population,
-            Capital = country?.capital[0]
+            Name = country.Names?.Common,
+            Flag = country.Flag?.UrlPng,
+            Population = country.Population,
+            Capital = country.Capitals?.FirstOrDefault()?.Name
         };
     }
 
-    private List<dynamic> DeserializeCountries(string json)
+    private List<RestCountryApiResponse> DeserializeCountries(string json)
     {
-        return JsonConvert.DeserializeObject<List<dynamic>>(json) ?? [];
+        var token = JToken.Parse(json);
+
+        if (token is JArray array)
+        {
+            return array.ToObject<List<RestCountryApiResponse>>() ?? [];
+        }
+
+        if (token is JObject obj)
+        {
+            var errors = obj["errors"] as JArray;
+            var message = errors?
+                .Select(e => e["message"]?.ToString())
+                .Where(m => !string.IsNullOrWhiteSpace(m))
+                .FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                throw new ExternalApiException(message);
+            }
+
+            var dataToken = obj["data"];
+
+            if (dataToken is JArray dataArray)
+            {
+                return dataArray.ToObject<List<RestCountryApiResponse>>() ?? [];
+            }
+
+            if (dataToken is JObject dataObject && dataObject["objects"] is JArray objectsArray)
+            {
+                return objectsArray.ToObject<List<RestCountryApiResponse>>() ?? [];
+            }
+        }
+
+        return [];
     }
 }

@@ -6,6 +6,9 @@ using Infrastructure.Interfaces;
 using Infrastructure.Data;
 using System.Net;
 using Infrastructure.Services;
+using Infrastructure.Exceptions;
+using Middleware;
+using API.Controllers;
 
 namespace BackEndTests.Integration
 {
@@ -18,7 +21,7 @@ namespace BackEndTests.Integration
             _client = fixture.Client;
         }
 
-        [Fact(Skip = "Skipping this test temporarily due to pending implementation.")]
+        [Fact]
         public async Task GetCountries_ReturnsOk()
         {
             // Arrange
@@ -51,27 +54,20 @@ namespace BackEndTests.Integration
 
         public TestServerFixture()
         {
-            // Configure the TestServer using Program.cs
             var webHostBuilder = new WebHostBuilder()
                 .ConfigureServices(services =>
                 {
-                    services.AddHttpClient<IRestCountriesClient, RestCountriesClient>(client =>
-                    {
-                        client.BaseAddress = new Uri("http://localhost");
-                    });
-
+                    services.AddSingleton<IRestCountriesClient, FakeRestCountriesClient>();
                     services.AddScoped<ICountryService, CountryService>();
-
                     services.AddEndpointsApiExplorer();
-
-                    services.AddControllers();
-
+                    services.AddControllers()
+                        .AddApplicationPart(typeof(CountriesController).Assembly);
                     services.AddSwaggerGen();
                 })
                 .Configure(app =>
                 {
+                    app.UseCustomExceptionHandler();
                     app.UseCors("AllowAll");
-
                     app.UseRouting();
 
                     app.UseEndpoints(endpoints =>
@@ -82,6 +78,42 @@ namespace BackEndTests.Integration
 
             var server = new TestServer(webHostBuilder);
             Client = server.CreateClient();
+        }
+    }
+
+    public class FakeRestCountriesClient : IRestCountriesClient
+    {
+        public Task<string> GetAllCountriesAsync()
+        {
+            return Task.FromResult("""
+                [
+                    {
+                        "name": { "common": "South Africa" },
+                        "flags": { "png": "za.svg" },
+                        "population": 60000000,
+                        "capital": ["Pretoria"]
+                    }
+                ]
+                """);
+        }
+
+        public Task<string> GetCountryByNameAsync(string name)
+        {
+            if (string.Equals(name, "nonexistentcountry", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new CountryNotFoundException($"Country '{name}' not found.");
+            }
+
+            return Task.FromResult("""
+                [
+                    {
+                        "name": { "common": "South Africa" },
+                        "flags": { "png": "za.svg" },
+                        "population": 60000000,
+                        "capital": ["Pretoria"]
+                    }
+                ]
+                """);
         }
     }
 }

@@ -16,62 +16,52 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Frontend Setup
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
+          cache-dependency-path: client/package-lock.json
 
       - name: Install frontend dependencies
-        working-directory: ./client   # Frontend in 'client' folder
+        working-directory: ./client
         run: npm ci
 
-      # Skip frontend tests (removed)
-      # - name: Run frontend tests
-      #   working-directory: ./client   # Frontend in 'client' folder
-      #   run: npm test -- --watchAll=false
+      - name: Lint frontend
+        working-directory: ./client
+        run: npm run lint
+
+      - name: Run frontend tests
+        working-directory: ./client
+        run: npm test -- --run
 
       - name: Build frontend
-        working-directory: ./client   # Frontend in 'client' folder
+        working-directory: ./client
         run: npm run build
 
-      # Backend Setup and Build
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' # Update to match your version
+          dotnet-version: "8.0.x"
 
-      - name: Restore backend dependencies
-        working-directory: ./API   # Backend in 'API' folder
-        run: dotnet restore
+      - name: Restore solution dependencies
+        run: dotnet restore ./FlagExplorerApp.sln
 
-      # Restore dependencies for backend tests
-      - name: Restore backend test dependencies
-        working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
-        run: dotnet restore
+      - name: Build solution
+        run: dotnet build ./FlagExplorerApp.sln --configuration Release --no-restore
 
-      - name: Build backend
-        working-directory: ./API   # Backend in 'API' folder
-        run: dotnet build --no-restore
-
-      # Build backend tests before running them
-      - name: Build backend tests
-        working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
-        run: dotnet build --no-restore
-
-      # Run backend tests (after build)
       - name: Run backend tests
-        working-directory: ./BackEndTests   # Backend tests in 'BackEndTests' folder
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test ./BackEndTests/BackEndTests.csproj --configuration Release --no-build --verbosity normal
 
-      # Package Output
-      - name: Package frontend
-        run: zip -r frontend-build.zip ./client/dist
+      - name: Publish backend
+        run: dotnet publish ./API/API.csproj -c Release -o ./backend-publish --no-build
 
-      - name: Package backend
-        run: zip -r backend-build.zip ./API/bin/Debug/net8.0
+      - name: Package artifacts
+        run: |
+          zip -r frontend-build.zip ./client/dist
+          zip -r backend-build.zip ./backend-publish
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -80,3 +70,4 @@ jobs:
           path: |
             frontend-build.zip
             backend-build.zip
+          if-no-files-found: error

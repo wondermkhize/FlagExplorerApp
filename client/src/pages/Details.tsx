@@ -6,9 +6,18 @@ const Details = () => {
 	const { name } = useParams<{ name: string }>();
 	const { data, isLoading, isError } = useCountryDetails(name || "");
 
-	if (isLoading) return <p className="p-4">Loading...</p>;
+	if (isLoading)
+		return (
+			<p className="p-4" role="status" aria-live="polite">
+				Loading country details...
+			</p>
+		);
 	if (isError || !data)
-		return <p className="p-4 text-red-600">Failed to load details.</p>;
+		return (
+			<p className="p-4 text-red-600" role="alert">
+				Failed to load details.
+			</p>
+		);
 
 	return (
 		<div className="details-container">
